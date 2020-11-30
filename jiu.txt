@@ -1,0 +1,259 @@
+
+
+#include <stdio.h>
+//#include <stdlib.h>
+#include <unistd.h>//هذا لاجل الوقت
+#include <pthread.h>//لى لاكثر من عميل
+#define TRUE    1
+#define FALSE   0
+int  arr[50][3], id, PIN,count=0,check(),entering[100],number[100],N;//هذا يخزن الرم السري و الرمز ومساحة البرسس المضاف او رقمه 
+clock_t t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12; //للوقت المستخدم
+int max(int number[100]) {
+    int i = 0;
+    int maximum = number[0];
+    for (i = 0; i < N; i++) {
+        if (maximum < number[i])
+            maximum = number[i];
+    }
+    return maximum;
+}
+
+void lock(int i) {//cretcal scach الاغلاق
+    int j = 0;
+    entering[i] =TRUE;
+    number[i] = 1 + max(number);
+    entering[i] = FALSE;
+    for (j = 0; j < N; j++) {
+        while (entering[j]);
+        while (number[j] != 0 && (number[j] < number[i] || (number[i] == number[j]) && j < i)) {}
+    }
+}
+
+
+void unlock(int i) {//الفتح
+    number[i] = 0;
+}
+
+
+void* Open(void *integer)//فتح حساب
+{
+    int i = (int) integer;
+    lock(i);// يغلفق النظام بعد دخول
+    printf("\nProcess %d is Entering Critical Section\n",i);
+    t1 = clock();
+    if ((count < 50)){//اذا العميل اقل من 50 يدخل
+    printf(" *******Open_Acouont  (%d)***********\n",i);
+    printf(" Enter your acount\n");
+    scanf("%d", &id);
+    for(int j=0;j<count;j++){
+       if(id==arr[j][0]) {// يبحث عن اسم الحساب اذا وجده
+           printf("you have acount from befor\n");
+           printf("Process %d is leaving Critical Section\n",i);
+           unlock(i);//يفتح النظام
+           return 0;
+
+       }
+    }
+    arr[count][0]=id;//اذا لم يجد الحساب يفتح حساب
+    printf("Enter your PIN\n");
+    scanf("%d", &arr[count][1]);
+    printf(" Enter your initial Deposit\n");
+    scanf("%d", &arr[count][2]);
+    count++;
+    t2 = clock();
+    printf("\n TIME IS %f: \n",(double)(t2-t1 )/ CLOCKS_PER_SEC);
+        printf("Process %d is leaving Critical Section\n",i);
+        unlock(i);
+    return 0;}
+     else
+        printf("Bank is full ");//اتذا كان اكبر من50
+    printf("Process %d is leaving Critical Section\n",i);
+    unlock(i);
+     return 0;
+}
+//-------------------------------------
+void* Close_acount(void *integer)//اغلاق حساب
+{
+    int i = (int) integer;
+    lock(i);// يغلق
+    printf("\nProcess %d is Entering Critical Section\n",i);
+    if (count > 0){//
+    t3=clock();
+    printf(" *******Close_Acouont***********\n");
+    int CH=check();// يشيك هل الحساب موجود في الاساس
+    if(CH!=-1){
+        printf("Ethe Acount hase closed for big%d and your balance%d\n",arr[CH][0],arr[CH][2]);
+    for (int i=CH;i<count;i++){//يجد الجساب ويحذفه ويفعل شفت 
+        arr[CH][0]=arr[CH+1][0];
+        arr[CH][1]=arr[CH+1][1];
+        arr[CH][2]=arr[CH+1][2];
+    }
+    count--;
+    t4=clock();
+    printf("\n TIME IS %f: ",(double)(t4-t3 )/ CLOCKS_PER_SEC);
+        printf("Process %d is leaving Critical Section\n",i);
+        unlock(i);
+    return 0;}
+    else
+        t4=clock();
+    printf("\n TIME IS %f: ",(double)(t4-t3 )/ CLOCKS_PER_SEC);
+        printf("Process %d is leaving Critical Section\n",i);
+        unlock(i);
+    return 0;
+    }
+    else{
+    printf("Bank IS EMPTY");
+    printf("Process %d is leaving Critical Section\n",i);
+    unlock(i);
+    return 0;}
+}
+void* Withdraw(void *integer)// سحب
+{
+    int i = (int) integer;
+    lock(i);//يغلق
+    printf("\nProcess %d is Entering Critical Section\n",i);
+    t5=clock();
+    int my = 0;// رقم بدائي
+    int CH = check();//يشيك اذا الرقم داخل المصفوفه او لا
+    if (CH != -1)
+    printf("\n Enter Withdraw Amunt: ");
+    printf("\n Should be integer number: ");
+    scanf("%d", &my);//ادخال المبلغ اللذي يريد سحبه
+    if(my<=arr[CH][2]){//يشوف المبلغ اقل او يساوي ما يملكه
+        arr[CH][2] = arr[CH][2] - my; //يسحب المبلغ
+        t6 =clock();
+        printf("\n TIME IS %f: ",(double)(t6-t5 )/ CLOCKS_PER_SEC);//حساب الوقت
+        printf("Process %d is leaving Critical Section\n",i);
+        unlock(i);
+    return 0;}
+    else
+        printf("\n you can't becouse your Withdraw greten than your balance: ");//اذا كان اكبر من الموجود يطلعى له رساله
+    t6 =clock();
+    printf("\n TIME IS %f: ",(double)(t6-t5 )/ CLOCKS_PER_SEC);
+    printf("Process %d is leaving Critical Section\n",i);
+    unlock(i);
+    return 0;
+}
+void* Depooseit(void *integer) { //اداع
+    int i = (int) integer;
+    lock(i);
+    printf("\nProcess %d is Entering Critical Section\n",i);
+    t7 =clock();
+    int my = 0;
+    int CH = check();//تشييك ع المصفوفه
+    if (CH != -1){
+        printf(" Enter Deposit Amunt: ");
+        scanf("%d", &my);
+        arr[CH][2] +=  my;// يزيد المبلغ الجديد على الكونت
+        printf("\n your  new balence is %d: ",arr[CH][2]);//يطبع له المبلغ الجديد
+        t8 =clock();
+        printf("\n TIME IS %f: ",(double)(t8-t7 )/ CLOCKS_PER_SEC); }
+   
+    printf("Process %d is leaving Critical Section\n",i);
+    unlock(i);
+    return 0;}
+void* inquire(void *integer){//تاتشيك على الرصيد
+    int i = (int) integer;
+    lock(i);
+    printf("\nProcess %d is Entering Critical Section\n",i);
+    t9 =clock();
+    int CH = check();
+    if (CH!=-1){
+        printf("\n your balence is %d: ",arr[CH][2]);
+        t10 =clock();
+        printf("\n TIME IS %f: ",(double)(t10-t9 )/ CLOCKS_PER_SEC); }
+    printf("Process %d is leaving Critical Section\n",i);
+    unlock(i);
+         return 0;
+}
+void* servi(){//قئامه بالشاشه اللرئسيه
+    t11=clock();
+    //sleep(1);
+    printf("1.Open_Acouont\n");
+    //sleep(1);
+    printf("2.Close-acount\n");
+    //sleep(1);
+    printf("3.Depooseit\n");
+    //sleep(1);
+    printf("4.Withdraw\n");
+    //sleep(1);
+    printf("5.inquire\n");
+    //sleep(1);
+    printf("6.exit\n");
+
+    t12 =clock();
+    printf("\n TIME IS %f: ",(double)(t12-t11 )/ CLOCKS_PER_SEC);return 0;
+}
+int main() {
+
+    printf("Enter Number of Process\n");
+    scanf("%d",&N);
+    int n;// عدد الثرد
+    pthread_t g1[N];//Nحجم الثرد
+    pthread_t g2[N];
+    pthread_t g3[N];
+    pthread_t g4[N];
+    pthread_t g5[N];
+    pthread_t g6;
+
+
+    while (1) {
+        pthread_create(&g6,NULL,servi,NULL);// انشاء ثرد
+        pthread_join(g6,NULL);// ادخال الثرد
+        printf("\nENTER YOUR CHOICE\n");
+        scanf("%d", &n);
+        switch (n) {
+            case 1:
+               for(int i=0;i<N;i++){
+                    pthread_create(&g1[i],NULL,Open,(void *)i);//انشاء الثرد الاول
+                    pthread_join(g1[i],NULL);}// دخول iيحسب كم مره بتسوي open
+
+                break;
+            case 2:
+                for(int i=0;i<N;i++){
+                        pthread_create(&g2[i],NULL,Close_acount,(void *)i);//انشاء الثرد الثاني
+                pthread_join(g2[i],NULL);}//دخول iيحسب كم مره بتسوي Close
+                break;
+
+            case 3:
+                for(int i=0;i<N;i++){
+                    pthread_create(&g3[i],NULL,Depooseit, (void *)i);//الثالث
+                pthread_join(g3[i],NULL);}//دخول iيحسب كم مره بتسوي Depooseit
+                break;
+            case 4:
+                for(int i=0;i<N;i++){
+                    pthread_create(&g4[i],NULL,Withdraw, (void *)i);// الرباع
+                pthread_join(g4[i],NULL);////دخول iيحسب كم مره بتسوي Withdraw
+}
+                break;
+            case 5:
+                for(int i=0;i<N;i++){
+                    pthread_create(&g5[i],NULL,inquire, (void *)i);/// الخامس
+                pthread_join(g5[i],NULL);//دخول iيحسب كم مره بتسوي Withdraw
+}
+                break;
+            case 6:
+                printf("thank you for use our banking\n");
+
+               return 0;
+
+
+        }
+    }
+}
+
+int check(){
+    printf(" Enter your acount\n");
+    scanf("%d",&id);
+
+    printf(" Enter your PIN\n");
+    scanf("%d",&PIN);
+    for(int i=0;i<count;i++){
+    if (id==arr[i][0]&&PIN==arr[i][1]){
+        return i;}}
+
+    printf(" invalid ID or PIN\n");
+            return -1;
+
+    }
+
