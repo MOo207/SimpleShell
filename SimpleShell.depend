@@ -1,7 +1,32 @@
 # depslib dependency file v1.0
-1605875089 source:/home/manjaro/Desktop/SimpleShell/main.c
+1607574619 source:/home/manjaro/Desktop/OSP/SimpleShell/main.c
+	<stdio.h>
+	<unistd.h>
+	<pthread.h>
+	<stdio.h>
+	<unistd.h>
+	<stdlib.h>
+	<string.h>
+	<stddef.h>
+	<regex.h>
+
+1607573408 source:/home/manjaro/Desktop/OSP/SimpleShell/bank.c
 	<stdio.h>
 	<stdlib.h>
-	<dirent.h>
+	<unistd.h>
+	<pthread.h>
+
+1607572827 source:/home/manjaro/Desktop/OSP/SimpleShell/shell.c
+	<stdio.h>
+	<unistd.h>
+	<stdlib.h>
 	<string.h>
+	<stddef.h>
+	<regex.h>
+
+1607573408 /home/manjaro/Desktop/OSP/SimpleShell/bank.c
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	<pthread.h>
 
